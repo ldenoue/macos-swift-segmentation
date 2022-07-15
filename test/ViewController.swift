@@ -13,8 +13,7 @@ import CoreImage.CIFilterBuiltins
 
 class ViewController: NSViewController {
 
-    let bgQueue = DispatchQueue.global(qos: .background)
-    var processing = false
+    let bgQueue = DispatchQueue.global(qos: .userInitiated)
     private let requestHandler = VNSequenceRequestHandler()
     private var segmentationRequest = VNGeneratePersonSegmentationRequest()
     public var session: AVCaptureSession?
@@ -130,16 +129,9 @@ extension ViewController {
 
 extension ViewController: AVCaptureVideoDataOutputSampleBufferDelegate {
     func captureOutput(_ output: AVCaptureOutput, didOutput sampleBuffer: CMSampleBuffer, from connection: AVCaptureConnection) {
-        // Grab the pixelbuffer frame from the camera output
-        if processing {
-            //print("processing, exiting early")
-        }
-        processing = true
         guard let pixelBuffer = sampleBuffer.imageBuffer else { return }
-        /*DispatchQueue.main.async {
-            self.view.layer?.contents = pixelBuffer
-        }*/
-        processVideoFrame(pixelBuffer)
-        processing = false
+        DispatchQueue.global().async {
+            self.processVideoFrame(pixelBuffer)
+        }
     }
 }
